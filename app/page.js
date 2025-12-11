@@ -1,72 +1,60 @@
+// src/app/page.js
 'use client';
 
-import { useState, useEffect } from 'react';
-import Header from '@/app/components/Header';
-import KPICards from '@/app/components/KPI';
-import TemperatureChart from '@/app/components/TempChart';
-import FleetTable from '@/app/components/FleetTable';
-import SmartGateFeed from '@/app/components/SmartGate';
-import MapWidget from '@/app/components/MapWidget';
-import { INITIAL_TRUCKS, generateChartData } from '@/app/components/utils/data';
+import { useState } from 'react';
+import DriverView from '@/app/components/DriverView';
+import HQView from '@/app/components/HqView';
 
-const DashboardPage = () => {
-  const [trucks, setTrucks] = useState(INITIAL_TRUCKS);
-  const [gateLogs, setGateLogs] = useState([]);
-  const [chartData, setChartData] = useState(generateChartData());
+export default function Page() {
+  const [viewMode, setViewMode] = useState('selection'); // 'selection', 'driver', 'hq'
 
-  // Real-time Telemetry
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTrucks(prevTrucks => prevTrucks.map(t => ({
-        ...t,
-        speed: Math.max(0, t.speed + (Math.random() * 10 - 5)),
-        brakeTemp: Math.max(50, t.brakeTemp + (Math.random() * 15 - 5)),
-      })));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  if (viewMode === 'selection') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <h1 className="text-4xl font-bold text-white mb-8 tracking-tighter">S-LOG <span className="text-blue-500">SYSTEM</span></h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+          
+          {/* Card Driver */}
+          <button 
+            onClick={() => setViewMode('driver')}
+            className="group bg-slate-900 hover:bg-blue-900/30 border border-slate-700 hover:border-blue-500 p-10 rounded-2xl transition-all text-left"
+          >
+            <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+               <span className="text-3xl">🚛</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Head Unit (Supir)</h2>
+            <p className="text-slate-400">Masuk ke tampilan dashboard kendaraan, navigasi, dan sensor peringatan.</p>
+          </button>
 
-  // Smart Gate Entries
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const isSafe = Math.random() > 0.3;
-      const newLog = {
-        id: Date.now(),
-        plat: `B ${Math.floor(Math.random() * 9000)} ${isSafe ? 'TX' : 'XX'}`,
-        timestamp: new Date().toLocaleTimeString(),
-        status: isSafe ? 'GREEN LANE' : 'MANUAL CHECK',
-        isSafe: isSafe
-      };
-      setGateLogs(prev => [newLog, ...prev].slice(0, 5));
-    }, 3500);
-    return () => clearInterval(interval);
-  }, []);
+          {/* Card HQ */}
+          <button 
+            onClick={() => setViewMode('hq')}
+            className="group bg-slate-900 hover:bg-purple-900/30 border border-slate-700 hover:border-purple-500 p-10 rounded-2xl transition-all text-left"
+          >
+            <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+               <span className="text-3xl">🏢</span>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Pusat Komando (HQ)</h2>
+            <p className="text-slate-400">Monitoring seluruh armada, truk ODOL, dan manajemen pengemudi.</p>
+          </button>
+
+        </div>
+        <p className="text-slate-600 mt-12 text-sm">S-Log v2.0 - IoT Integrated Logistic System</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-blue-500/30">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto p-6 space-y-6">
-        <KPICards />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <div className="lg:col-span-2 space-y-6">
-            <TemperatureChart chartData={chartData} />
-            <FleetTable trucks={trucks} setTrucks={setTrucks} />
-          </div>
+    <div>
+      {/* Tombol Back Kecil di pojok kiri bawah utk dev */}
+      <button 
+        onClick={() => setViewMode('selection')}
+        className="fixed bottom-4 left-4 z-50 bg-slate-800 text-slate-500 text-xs px-2 py-1 rounded opacity-50 hover:opacity-100"
+      >
+        Switch View
+      </button>
 
-         
-          <div className="space-y-6">
-            <SmartGateFeed gateLogs={gateLogs} />
-            <MapWidget />
-          </div>
-        </div>
-      </main>
+      {viewMode === 'driver' ? <DriverView /> : <HQView />}
     </div>
   );
-};
-
-export default DashboardPage;
-
-
+}
